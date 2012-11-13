@@ -16,7 +16,7 @@ php composer.phar update
 
 db_migrations_version - возвращает номер текущей версии
 
-db_migrations_migrate [ <version> ] - выполнить или откатить миграцию, можно указать необязательный параметр номера версии
+db_migrations_migrate <version> - выполнить или откатить миграцию, номер версии необязательный параметр
 
 db_migrations_generate - Сгенерировать каркас класса миграции
 
