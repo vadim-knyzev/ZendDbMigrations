@@ -7,9 +7,9 @@
         "database",
         "db",
         "migrations",
-        "zf2",
+        "zf2"
     ],
-    "homepage": "https://github.com/vadim-knyzev/ZendDbMigrations.git",
+    "homepage": "https://github.com/vadim-knyzev/ZendDbMigrations",
     "authors": [
         {
             "name": "Vadim Knyzev",

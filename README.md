@@ -1,32 +1,32 @@
-Migrations
+ZendDbMigrations
 ============
 
 Установка
 -------------
-в процессе написания документации
+
 
 Использование 
 -------------
 
-Список добавляемых консольных комманд
-db_migrations_version - возвращает номер текущей версии
-db_migrations_migrate [<version>] - выполнить или откатить миграцию, можно указать необязательный параметр номера версии
-db_migrations_generate - Сгенерировать каркас класса миграции
+Список добавляемых консольных комманд\n
+db_migrations_version - возвращает номер текущей версии\n
+db_migrations_migrate [<version>] - выполнить или откатить миграцию, можно указать необязательный параметр номера версии\n
+db_migrations_generate - Сгенерировать каркас класса миграции\n
 
-Все миграции по умолчанию будут хранится в каталоге 
-/project/migrations/*
-поэтому нужно создать папку migrations или запускать команду генерации каркаса миграций с правами на запись в корневую директорию
+Все миграции по умолчанию будут хранится в каталоге \n
+/project/migrations/*\n
+поэтому нужно создать папку migrations или запускать команду генерации каркаса миграций с правами на запись в корневую директорию\n
 
-В общем случае классы миграций должны иметь название вида 
-Versionггггммддччммссс.php и реализовывать интерфейс Migrations\Library\MigrationInterface
+В общем случае классы миграций должны иметь название вида \n
+Versionггггммддччммссс.php и реализовывать интерфейс ZendDbMigrations\Library\MigrationInterface\n
 
-Пример класса миграции
+Пример класса миграции\n
 ``` php
 <?php
 
-namespace Migrations\Migrations;
+namespace ZendDbMigrations\Migrations;
 
-use Migrations\Library\AbstractMigration;
+use ZendDbMigrations\Library\AbstractMigration;
 use Zend\Db\Metadata\MetadataInterface;
 
 class Version20121112230913 extends AbstractMigration {
@@ -41,11 +41,11 @@ class Version20121112230913 extends AbstractMigration {
 }
 ```
 
-выполнить миграцию можно двумя способами
-запустив команду db_migrations_migrate без параметров
-или с указанием версии 
-db_migrations_migrate 20121112230913
+выполнить миграцию можно двумя способами\n
+запустив команду db_migrations_migrate без параметров\n
+или с указанием версии \n
+db_migrations_migrate 20121112230913\n
 
-Version20121112230913 - здесь 20121112230913 будет версией миграции
+Version20121112230913 - здесь 20121112230913 будет версией миграции\n
 
-Смотрите блог http://vadim-knyzev.blogspot.com/
+http://vadim-knyzev.blogspot.com/
