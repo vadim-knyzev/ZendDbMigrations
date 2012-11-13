@@ -1,5 +1,5 @@
 {
-    "name": "zend-db-migrations",
+    "name": "knyzev/zend-db-migrations",
     "description": "Module for managment database migrations.",
     "type": "library",
     "license": "BSD-3-Clause",
