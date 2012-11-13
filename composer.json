@@ -1,0 +1,32 @@
+{
+    "name": "ZendDbMigrations",
+    "description": "Module for managment database migrations.",
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "database",
+        "db",
+        "migrations",
+        "zf2",
+    ],
+    "homepage": "https://github.com/vadim-knyzev/ZendDbMigrations.git",
+    "authors": [
+        {
+            "name": "Vadim Knyzev",
+            "email": "vadim.knyzev@gmail.com",
+            "homepage": "http://vadim-knyzev.blogspot.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "ZendDbMigrations": "src/"
+        },
+        "classmap": [
+            "./Module.php"
+        ]
+    }
+}
