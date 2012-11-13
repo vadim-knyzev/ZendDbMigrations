@@ -2,7 +2,7 @@
 
 return array(
     'migrations' => array(
-        'dir' => dirname(__FILE__) . '/../../../migrations',
+        'dir' => dirname(__FILE__) . '/../../../../migrations',
         'namespace' => 'ZendDbMigrations\Migrations',
         'show_log' => true
     ),
