@@ -6,10 +6,9 @@ ZendDbMigrations
 Добавьте в composer.json проекта в секцию require
 "knyzev/zend-db-migrations": "dev-master"
 
-выполните php 
+затем выполните
 ``` bash
-composer.phar 
-self-update
+php composer.phar self-update
 php composer.phar update
 ```
 
