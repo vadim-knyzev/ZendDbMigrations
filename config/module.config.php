@@ -12,7 +12,7 @@ return array(
                 'db_migrations_version' => array(
                     'type'    => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_version',
+                        'route'    => 'db_migrations_version [--env=]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
                             'action'     => 'version'
@@ -22,7 +22,7 @@ return array(
                 'db_migrations_migrate' => array(
                     'type'    => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_migrate [<version>]',
+                        'route'    => 'db_migrations_migrate [<version>] [--env=]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
                             'action'     => 'migrate'
@@ -32,7 +32,7 @@ return array(
                 'db_migrations_generate' => array(
                     'type'    => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_generate',
+                        'route'    => 'db_migrations_generate [--env=]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
                             'action'     => 'generateMigrationClass'
