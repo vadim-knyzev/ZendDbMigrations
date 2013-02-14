@@ -6,41 +6,44 @@ use Zend\Db\Adapter\Adapter;
 use Zend\Db\Adapter\Driver\Pdo\Pdo;
 use Zend\Db\Metadata\Metadata;
 use ZendDbMigrations\Library\OutputWriter;
+use ZendDbMigrations\Model\MigrationVersionTable;
 
 /**
  * Основная логика работы с миграциями
  */
 class Migration
 {
+    const MIGRATION_TABLE = 'migration_version';
 
-    protected $migrationTable = 'migration_version';
     protected $migrationClassFolder;
     protected $namespaceMigrationsClasses;
     protected $adapter;
     protected $connection;
     protected $metadata;
+    protected $migrationVersionTable;
     protected $outputWriter;
 
     /**
      * @param \Zend\Db\Adapter\Adapter $adapter
-     * @param string $migrationClassFolder
-     * @param string $namespaceMigrationsClasses
+     * @param array $config
+     * @param \ZendDbMigrations\Model\MigrationVersionTable $migrationVersionTable
      * @param OutputWriter $writer
      * @throws \Exception
      */
-    public function __construct(Adapter $adapter, $migrationClassFolder, $namespaceMigrationsClasses, OutputWriter $writer = null)
+    public function __construct(Adapter $adapter, array $config, MigrationVersionTable $migrationVersionTable, OutputWriter $writer = null)
     {
         $this->adapter = $adapter;
         $this->metadata = new Metadata($this->adapter);
         $this->connection = $this->adapter->getDriver()->getConnection();
-        $this->migrationClassFolder = $migrationClassFolder;
-        $this->namespaceMigrationsClasses = $namespaceMigrationsClasses;
+        $this->migrationClassFolder = $config['dir'];
+        $this->namespaceMigrationsClasses = $config['namespace'];
+        $this->migrationVersionTable = $migrationVersionTable;
         $this->outputWriter = is_null($writer) ? new OutputWriter() : $writer;
 
-        if (is_null($migrationClassFolder))
+        if (is_null($this->migrationClassFolder))
             throw new \Exception('Unknown directory!');
 
-        if (is_null($namespaceMigrationsClasses))
+        if (is_null($this->namespaceMigrationsClasses))
             throw new \Exception('Unknown namespaces!');
 
         if (!file_exists($this->migrationClassFolder))
@@ -74,61 +77,7 @@ CREATE TABLE IF NOT EXISTS "%s" (
 );
 TABLE;
         }
-        $this->connection->execute(sprintf($sql, $this->migrationTable));
-    }
-
-    /**
-     * Получить текущий номер версии
-     * @return integer Номер текущей миграции
-     */
-    public function getCurrentVersion()
-    {
-        $result = $this->connection->execute(sprintf('SELECT version FROM %s ORDER BY version DESC LIMIT 1',
-            $this->migrationTable));
-
-        if ($result->count() == 0)
-            return 0;
-
-        $version = $result->current();
-
-        return $version['version'];
-    }
-
-    /**
-     * Добавить сведения о выполненной миграции
-     * @param integer $version
-     */
-    protected function markMigrated($version)
-    {
-        $this->connection->execute(sprintf("INSERT INTO %s (version) VALUES (%s)",
-            $this->migrationTable,
-            $version
-        ));
-    }
-
-    /**
-     * Удалить сведения о выполенной миграции
-     * @param string $version
-     */
-    protected function markNotMigrated($version)
-    {
-        $this->connection->execute(sprintf("DELETE FROM %s WHERE version=%s",
-            $this->migrationTable,
-            $version
-        ));
-    }
-
-    /**
-     * Проверка выполнена ли миграция
-     * @param integer $version
-     * @return boolean
-     */
-    public function checkExecuteMigration($version)
-    {
-        $result = $this->connection->execute(sprintf('SELECT version FROM %s WHERE version=%s',
-            $this->migrationTable, $version));
-
-        return $result->count() > 0;
+        $this->connection->execute(sprintf($sql, Migration::MIGRATION_TABLE));
     }
 
     /**
@@ -145,7 +94,7 @@ TABLE;
             throw new MigrationException(sprintf('Migration version %s is not found!', $version));
         }
 
-        $currentMigrationVersion = $this->getCurrentVersion();
+        $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
         if (!is_null($version) && $version == $currentMigrationVersion)
             throw new MigrationException(sprintf('Migration version %s is current version!', $version));
 
@@ -166,7 +115,7 @@ TABLE;
                                 $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
                             }
 
-                            $this->markMigrated($migration['version']);
+                            $this->migrationVersionTable->save($version);
                         }
                     }
                 }
@@ -185,7 +134,7 @@ TABLE;
                             $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
                         }
 
-                        $this->markNotMigrated($migration['version']);
+                        $this->migrationVersionTable->delete($migration['version']);
                     }
 
                 }
@@ -264,7 +213,7 @@ TABLE;
         $iterator = new \GlobIterator(sprintf('%s/Version*.php', $this->migrationClassFolder), \FilesystemIterator::KEY_AS_FILENAME);
         foreach ($iterator as $item) {
             if (preg_match('/(Version(\d+))\.php/', $item->getFilename(), $matches)) {
-                $applied = $this->checkExecuteMigration($matches[2]);
+                $applied = $this->migrationVersionTable->applied($matches[2]);
                 if ($all || !$applied) {
                     $className = $this->namespaceMigrationsClasses . '\\' . $matches[1];
 

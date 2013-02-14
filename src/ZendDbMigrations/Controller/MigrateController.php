@@ -27,6 +27,10 @@ class MigrateController extends AbstractActionController
      */
     protected $migration;
     /**
+     * @var \ZendDbMigrations\Model\MigrationVersionTable
+     */
+    protected $migrationVersionTable;
+    /**
      * @var OutputWriter
      */
     protected $output;
@@ -49,7 +53,8 @@ class MigrateController extends AbstractActionController
             });
         }
 
-        $this->migration = new Migration($adapter, $config['migrations']['dir'], $config['migrations']['namespace'], $this->output);
+        $this->migrationVersionTable = $this->getServiceLocator()->get('ZendDbMigrations\Model\MigrationVersionTable');
+        $this->migration = new Migration($adapter, $config['migrations'], $this->migrationVersionTable, $this->output);
 
         return parent::onDispatch($e);
     }
@@ -60,7 +65,7 @@ class MigrateController extends AbstractActionController
      */
     public function versionAction()
     {
-        return sprintf("Current version %s\n", $this->migration->getCurrentVersion());
+        return sprintf("Current version %s\n", $this->migrationVersionTable->getCurrentVersion());
     }
 
     public function listAction()
@@ -81,7 +86,8 @@ class MigrateController extends AbstractActionController
         $version = $this->getRequest()->getParam('version');
 
         $migrations = $this->migration->getMigrationClasses();
-        if (is_null($version) && $this->migration->getCurrentVersion() >= $this->migration->getMaxMigrationNumber($migrations))
+        $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
+        if (is_null($version) && $currentMigrationVersion >= $this->migration->getMaxMigrationNumber($migrations))
             return "No migrations to execute.\n";
 
         try {

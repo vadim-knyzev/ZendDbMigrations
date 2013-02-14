@@ -9,6 +9,8 @@
 
 namespace ZendDbMigrations;
 
+use Zend\Db\ResultSet\ResultSet;
+use Zend\Db\TableGateway\TableGateway;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
@@ -41,6 +43,26 @@ class Module implements
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
                 ),
+            ),
+        );
+    }
+
+    public function getServiceConfig()
+    {
+        return array(
+            'factories' => array(
+                'ZendDbMigrations\Model\MigrationVersionTable' => function ($sm) {
+                    /** @var $sm */
+                    $tableGateway = $sm->get('MigrationVersionTableGateway');
+                    $table = new Model\MigrationVersionTable($tableGateway);
+                    return $table;
+                },
+                'MigrationVersionTableGateway' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    $resultSetPrototype = new ResultSet();
+                    $resultSetPrototype->setArrayObjectPrototype(new Model\MigrationVersion());
+                    return new TableGateway(Library\Migration::MIGRATION_TABLE, $dbAdapter, null, $resultSetPrototype);
+                },
             ),
         );
     }
