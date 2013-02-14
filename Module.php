@@ -10,23 +10,21 @@
 namespace ZendDbMigrations;
 
 use Zend\Mvc\ModuleRouteListener;
+use Zend\Mvc\MvcEvent;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 use Zend\ModuleManager\Feature\ConsoleUsageProviderInterface;
 use Zend\Console\Adapter\AdapterInterface as Console;
-use Zend\ModuleManager\Feature\ConsoleBannerProviderInterface;
 
 class Module implements
     AutoloaderProviderInterface,
     ConfigProviderInterface,
-    ConsoleUsageProviderInterface,
-    ConsoleBannerProviderInterface
+    ConsoleUsageProviderInterface
 {
-    
-    public function onBootstrap($e)
+    public function onBootstrap(MvcEvent $e)
     {
         $e->getApplication()->getServiceManager()->get('translator');
-        $eventManager        = $e->getApplication()->getEventManager();
+        $eventManager = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
     }
@@ -46,17 +44,20 @@ class Module implements
             ),
         );
     }
-    
-    public function getConsoleBanner(Console $console){
-        return 'DB Migrations Module';
-    }
 
-    public function getConsoleUsage(Console $console){
-        //description command
+    public function getConsoleUsage(Console $console)
+    {
         return array(
-            'db_migrations_version' => 'Get current migration version',
-            'db_migrations_migrate [<version>]' => 'Execute migrate',
-            'db_migrations_generate' => 'Generate new migration class'
+            'Migrations',
+
+            'migration version' => 'Get current migration version',
+
+            'migration list [--all]' => 'List available migrations',
+            array('--all', 'Include applied migrations'),
+
+            'migration migrate [<version>]' => 'Execute migrate',
+
+            'migration generate' => 'Generate new migration class'
         );
     }
 }
