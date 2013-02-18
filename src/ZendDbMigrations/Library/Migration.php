@@ -4,6 +4,7 @@ namespace ZendDbMigrations\Library;
 
 use Zend\Db\Adapter\Adapter;
 use Zend\Db\Adapter\Driver\Pdo\Pdo;
+use Zend\Db\Adapter\Exception\InvalidQueryException;
 use Zend\Db\Metadata\Metadata;
 use ZendDbMigrations\Library\OutputWriter;
 use ZendDbMigrations\Model\MigrationVersionTable;
@@ -111,11 +112,11 @@ TABLE;
                             $this->outputWriter->write(sprintf("Execute migration class %s up", $migration['class']));
 
                             foreach ($migrationObject->getUpSql() as $sql) {
-                                $this->connection->execute($sql);
                                 $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
+                                $this->connection->execute($sql);
                             }
 
-                            $this->migrationVersionTable->save($version);
+                            $this->migrationVersionTable->save($migration['version']);
                         }
                     }
                 }
@@ -130,8 +131,8 @@ TABLE;
                         $this->outputWriter->write(sprintf("Execute migration class %s down", $migration['class']));
 
                         foreach ($migrationObject->getDownSql() as $sql) {
-                            $this->connection->execute($sql);
                             $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
+                            $this->connection->execute($sql);
                         }
 
                         $this->migrationVersionTable->delete($migration['version']);
@@ -141,9 +142,14 @@ TABLE;
             }
 
             $this->connection->commit();
+        } catch (InvalidQueryException $e) {
+            $this->connection->rollback();
+            $msg = sprintf('%s: "%s"; File: %s; Line #%d', $e->getMessage(), $e->getPrevious()->getMessage(), $e->getFile(), $e->getLine());
+            throw new MigrationException($msg);
         } catch (\Exception $e) {
             $this->connection->rollback();
-            throw new MigrationException($e->getMessage() . '; Line error %' . $e->getLine());
+            $msg = sprintf('%s; File: %s; Line #%d', $e->getMessage(), $e->getFile(), $e->getLine());
+            throw new MigrationException($msg);
         }
     }
 
