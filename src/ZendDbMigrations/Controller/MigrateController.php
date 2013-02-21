@@ -106,8 +106,8 @@ class MigrateController extends AbstractActionController
         $config = $this->getServiceLocator()->get('Configuration');
 
         $generator = new GeneratorMigrationClass($config['migrations']['dir'], $config['migrations']['namespace']);
-        $className = $generator->generate();
+        $classPath = $generator->generate();
 
-        return sprintf("Generated class %s\n", $className);
+        return sprintf("Generated class %s\n", realpath($classPath));
     }
 }
