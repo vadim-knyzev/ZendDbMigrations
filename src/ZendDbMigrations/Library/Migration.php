@@ -19,6 +19,9 @@ class Migration
     protected $migrationClassFolder;
     protected $namespaceMigrationsClasses;
     protected $adapter;
+    /**
+     * @var \Zend\Db\Adapter\Driver\ConnectionInterface
+     */
     protected $connection;
     protected $metadata;
     protected $migrationVersionTable;
@@ -82,12 +85,12 @@ TABLE;
     }
 
     /**
-     * Мигрировать
-     * @param integer $version Номер версии к которой нужно мигрировать,
-     * если не указано то будут выполнены все новые миграции
+     * @param int $version Номер версии к которой нужно мигрировать, если не указано то будут выполнены все новые миграции
+     * @param bool $force Применять указанную миграцию без лишних вопросов
+     * @param bool $down Применить откат миграции указанной версии
      * @throws MigrationException
      */
-    public function migrate($version = null)
+    public function migrate($version = null, $force = false, $down = false)
     {
         $migrations = $this->getMigrationClasses();
 
@@ -96,27 +99,25 @@ TABLE;
         }
 
         $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
-        if (!is_null($version) && $version == $currentMigrationVersion)
+        if (!is_null($version) && $version == $currentMigrationVersion) {
             throw new MigrationException(sprintf('Migration version %s is current version!', $version));
+        }
 
         $this->connection->beginTransaction();
         try {
-            //номер миграции не указан либо указанный номер больше последней выполненной миграции -> миграция добавления
-            if (is_null($version) || (!is_null($version) && $version > $currentMigrationVersion)) {
+            if ($version && $force) {
                 foreach ($migrations as $migration) {
-                    /** @var $migrationObject AbstractMigration */
-                    $migrationObject = new $migration['class']($this->metadata);
-
+                    if ($migration['version'] == $version) {
+                        $this->applyMigration($migration, $down);
+                        break;
+                    }
+                }
+                //номер миграции не указан либо указанный номер больше последней выполненной миграции -> миграция добавления
+            } elseif (is_null($version) || (!is_null($version) && $version > $currentMigrationVersion)) {
+                foreach ($migrations as $migration) {
                     if ($migration['version'] > $currentMigrationVersion) {
                         if (is_null($version) || (!is_null($version) && $version >= $migration['version'])) {
-                            $this->outputWriter->write(sprintf("Execute migration class %s up", $migration['class']));
-
-                            foreach ($migrationObject->getUpSql() as $sql) {
-                                $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
-                                $this->connection->execute($sql);
-                            }
-
-                            $this->migrationVersionTable->save($migration['version']);
+                            $this->applyMigration($migration);
                         }
                     }
                 }
@@ -124,20 +125,9 @@ TABLE;
             } elseif (!is_null($version) && $version < $currentMigrationVersion) {
                 $migrationsByDesc = $this->sortMigrationByVersionDesc($migrations);
                 foreach ($migrationsByDesc as $migration) {
-                    /** @var $migrationObject AbstractMigration */
-                    $migrationObject = new $migration['class']($this->metadata);
-
                     if ($migration['version'] > $version && $migration['version'] <= $currentMigrationVersion) {
-                        $this->outputWriter->write(sprintf("Execute migration class %s down", $migration['class']));
-
-                        foreach ($migrationObject->getDownSql() as $sql) {
-                            $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
-                            $this->connection->execute($sql);
-                        }
-
-                        $this->migrationVersionTable->delete($migration['version']);
+                        $this->applyMigration($migration, true);
                     }
-
                 }
             }
 
@@ -252,6 +242,26 @@ TABLE;
         });
 
         return $classes;
+    }
+
+    protected function applyMigration(array $migration, $down = false)
+    {
+        /** @var $migrationObject AbstractMigration */
+        $migrationObject = new $migration['class']($this->metadata);
+
+        $this->outputWriter->write(sprintf("Execute migration class %s %s", $migration['class'], $down ? 'down' : 'up'));
+
+        $sqlList = $down ? $migrationObject->getDownSql() : $migrationObject->getUpSql();
+        foreach ($sqlList as $sql) {
+            $this->outputWriter->write("Execute sql code  \n\n" . $sql . "\n");
+            $this->connection->execute($sql);
+        }
+
+        if ($down) {
+            $this->migrationVersionTable->delete($migration['version']);
+        } else {
+            $this->migrationVersionTable->save($migration['version']);
+        }
     }
 }
 

@@ -78,6 +78,11 @@ class Module implements
             array('--all', 'Include applied migrations'),
 
             'migration migrate [<version>]' => 'Execute migrate',
+            array(
+                '--force',
+                'Force apply migration even if it\'s older than the last migrated. Works only with <version> explicitly set.'
+            ),
+            array('--down', 'Force apply down migration. Works only with --force flag set.'),
 
             'migration generate' => 'Generate new migration class'
         );

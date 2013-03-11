@@ -32,7 +32,7 @@ return array(
                 'migration-migrate' => array(
                     'type' => 'simple',
                     'options' => array(
-                        'route' => 'migration migrate [<version>] [--env=]',
+                        'route' => 'migration migrate [<version>] [--env=] [--force] [--down]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
                             'action' => 'migrate'

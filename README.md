@@ -20,7 +20,7 @@ php composer.phar update
 ``` bash
 migration version - возвращает номер текущей версии
 migration list [--all] - выводит список доступных миграций
-migration migrate [<version>] - выполнить или откатить миграцию, номер версии необязательный параметр
+migration migrate [<version>] [--force] [--down] - выполнить или откатить миграцию, номер версии необязательный параметр
 migration generate - Сгенерировать каркас класса миграции
 ```
 

@@ -87,11 +87,17 @@ class MigrateController extends AbstractActionController
 
         $migrations = $this->migration->getMigrationClasses();
         $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
-        if (is_null($version) && $currentMigrationVersion >= $this->migration->getMaxMigrationNumber($migrations))
+        $force = $this->getRequest()->getParam('force');
+
+        if (is_null($version) && $force) {
+            return "Can't force migrate without migration version explicitly set.";
+        }
+        if (!$force && is_null($version) && $currentMigrationVersion >= $this->migration->getMaxMigrationNumber($migrations)) {
             return "No migrations to execute.\n";
+        }
 
         try {
-            $this->migration->migrate($version);
+            $this->migration->migrate($version, $force, $this->getRequest()->getParam('down'));
             return "Migrations executed!\n";
         } catch (MigrationException $e) {
             return "ZendDbMigrations\\Library\\MigrationException\n" . $e->getMessage() . "\n";
