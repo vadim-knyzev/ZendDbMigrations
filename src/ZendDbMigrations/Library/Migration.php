@@ -92,14 +92,14 @@ TABLE;
      */
     public function migrate($version = null, $force = false, $down = false)
     {
-        $migrations = $this->getMigrationClasses();
+        $migrations = $this->getMigrationClasses($force);
 
         if (!is_null($version) && !$this->hasMigrationVersion($migrations, $version)) {
             throw new MigrationException(sprintf('Migration version %s is not found!', $version));
         }
 
         $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
-        if (!is_null($version) && $version == $currentMigrationVersion) {
+        if (!is_null($version) && $version == $currentMigrationVersion && !$force) {
             throw new MigrationException(sprintf('Migration version %s is current version!', $version));
         }
 
@@ -108,6 +108,9 @@ TABLE;
             if ($version && $force) {
                 foreach ($migrations as $migration) {
                     if ($migration['version'] == $version) {
+                        // if existing migration is forced to apply - delete it's information from migrated
+                        // to avoid duplicate key error
+                        if (!$down) $this->migrationVersionTable->delete($migration['version']);
                         $this->applyMigration($migration, $down);
                         break;
                     }
@@ -208,6 +211,7 @@ TABLE;
 
         $iterator = new \GlobIterator(sprintf('%s/Version*.php', $this->migrationClassFolder), \FilesystemIterator::KEY_AS_FILENAME);
         foreach ($iterator as $item) {
+            /** @var $item \SplFileInfo */
             if (preg_match('/(Version(\d+))\.php/', $item->getFilename(), $matches)) {
                 $applied = $this->migrationVersionTable->applied($matches[2]);
                 if ($all || !$applied) {
