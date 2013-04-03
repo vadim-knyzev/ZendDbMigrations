@@ -1,6 +1,9 @@
 ZendDbMigrations
 ============
 
+## Try new module based on this fork [ZfSimpleMigrations](https://github.com/vgarvardt/ZfSimpleMigrations).
+## Fork is abandoned due to original module author not responding to issues and requests.
+
 Установка
 -------------
 Добавьте в composer.json проекта в секцию require
