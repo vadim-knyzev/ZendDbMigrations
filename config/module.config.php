@@ -9,33 +9,43 @@ return array(
     'console' => array(
         'router' => array(
             'routes' => array(
-                'db_migrations_version' => array(
-                    'type'    => 'simple',
+                'migration-version' => array(
+                    'type' => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_version [--env=]',
+                        'route' => 'migration version [--env=]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
-                            'action'     => 'version'
+                            'action' => 'version'
                         )
                     )
                 ),
-                'db_migrations_migrate' => array(
-                    'type'    => 'simple',
+                'migration-list' => array(
+                    'type' => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_migrate [<version>] [--env=]',
+                        'route' => 'migration list [--env=] [--all]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
-                            'action'     => 'migrate'
+                            'action' => 'list'
                         )
                     )
                 ),
-                'db_migrations_generate' => array(
-                    'type'    => 'simple',
+                'migration-migrate' => array(
+                    'type' => 'simple',
                     'options' => array(
-                        'route'    => 'db_migrations_generate [--env=]',
+                        'route' => 'migration migrate [<version>] [--env=] [--force] [--down]',
                         'defaults' => array(
                             'controller' => 'ZendDbMigrations\Controller\Migrate',
-                            'action'     => 'generateMigrationClass'
+                            'action' => 'migrate'
+                        )
+                    )
+                ),
+                'migration-generate' => array(
+                    'type' => 'simple',
+                    'options' => array(
+                        'route' => 'migration generate [--env=]',
+                        'defaults' => array(
+                            'controller' => 'ZendDbMigrations\Controller\Migrate',
+                            'action' => 'generateMigrationClass'
                         )
                     )
                 )

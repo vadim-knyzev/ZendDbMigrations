@@ -10,7 +10,7 @@
 namespace ZendDbMigrations\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Zend\Mvc\MvcEvent;
 use Zend\Console\Request as ConsoleRequest;
 use ZendDbMigrations\Library\Migration;
 use ZendDbMigrations\Library\MigrationException;
@@ -23,67 +23,97 @@ use ZendDbMigrations\Library\OutputWriter;
 class MigrateController extends AbstractActionController
 {
     /**
-     * Создать объект класса миграций
-     * @return \Migrations\Library\Migration
+     * @var \ZendDbMigrations\Library\Migration
      */
-    protected function getMigration(){
+    protected $migration;
+    /**
+     * @var \ZendDbMigrations\Model\MigrationVersionTable
+     */
+    protected $migrationVersionTable;
+    /**
+     * @var OutputWriter
+     */
+    protected $output;
+
+    public function onDispatch(MvcEvent $e)
+    {
+        if (!$this->getRequest() instanceof ConsoleRequest) {
+            throw new \RuntimeException('You can only use this action from a console!');
+        }
+
+        /** @var $adapter \Zend\Db\Adapter\Adapter */
         $adapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
         $config = $this->getServiceLocator()->get('Configuration');
-        
+
         $console = $this->getServiceLocator()->get('console');
-        
-        $output = null;
-        
-        if($config['migrations']['show_log'])
-        {
-            $output = new OutputWriter(function($message) use($console) {
-                        $console->write($message . "\n");
-                });
+
+        if ($config['migrations']['show_log']) {
+            $this->output = new OutputWriter(function ($message) use ($console) {
+                $console->write($message . "\n");
+            });
         }
-        
-        return new Migration($adapter, $config['migrations']['dir'], $config['migrations']['namespace'], $output);
+
+        $this->migrationVersionTable = $this->getServiceLocator()->get('ZendDbMigrations\Model\MigrationVersionTable');
+        $this->migration = new Migration($adapter, $config['migrations'], $this->migrationVersionTable, $this->output);
+
+        return parent::onDispatch($e);
     }
-    
+
     /**
      * Получить текущую версию миграции
      * @return integer
      */
-    public function versionAction(){
-        $migration = $this->getMigration();
-        
-        return sprintf("Current version %s\n", $migration->getCurrentVersion());
+    public function versionAction()
+    {
+        return sprintf("Current version %s\n", $this->migrationVersionTable->getCurrentVersion());
     }
-    
+
+    public function listAction()
+    {
+        $migrations = $this->migration->getMigrationClasses($this->getRequest()->getParam('all'));
+        $list = array();
+        foreach ($migrations as $m) {
+            $list[] = sprintf("%s %s - %s", $m['applied'] ? '-' : '+', $m['version'], $m['description']);
+        }
+        return (empty($list) ? 'No migrations to execute.' : implode("\n", $list)) . "\n";
+    }
+
     /**
      * Мигрировать
      */
-    public function migrateAction(){
-        $migration = $this->getMigration();
-        
+    public function migrateAction()
+    {
         $version = $this->getRequest()->getParam('version');
-        
-        if(is_null($version) && $migration->getCurrentVersion() >= $migration->getMaxMigrationNumber($migration->getMigrationClasses()))
-            return "No migrations to execute.\n";
-        
-        try{
-            $migration->migrate($version);
-            return "Migrations executed!\n";
+
+        $migrations = $this->migration->getMigrationClasses();
+        $currentMigrationVersion = $this->migrationVersionTable->getCurrentVersion();
+        $force = $this->getRequest()->getParam('force');
+
+        if (is_null($version) && $force) {
+            return "Can't force migrate without migration version explicitly set.";
         }
-        catch (MigrationException $e) {
-            return "ZendDbMigrations\Library\MigrationException\n" . $e->getMessage() . "\n";
+        if (!$force && is_null($version) && $currentMigrationVersion >= $this->migration->getMaxMigrationNumber($migrations)) {
+            return "No migrations to execute.\n";
+        }
+
+        try {
+            $this->migration->migrate($version, $force, $this->getRequest()->getParam('down'));
+            return "Migrations executed!\n";
+        } catch (MigrationException $e) {
+            return "ZendDbMigrations\\Library\\MigrationException\n" . $e->getMessage() . "\n";
         }
     }
-    
+
     /**
      * Сгенерировать каркасный класс для новой миграции
      */
-    public function generateMigrationClassAction(){
-        $adapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+    public function generateMigrationClassAction()
+    {
         $config = $this->getServiceLocator()->get('Configuration');
-        
+
         $generator = new GeneratorMigrationClass($config['migrations']['dir'], $config['migrations']['namespace']);
-        $className = $generator->generate();
-        
-        return sprintf("Generated class %s\n", $className);
+        $classPath = $generator->generate();
+
+        return sprintf("Generated class %s\n", realpath($classPath));
     }
 }

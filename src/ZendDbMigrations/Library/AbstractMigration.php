@@ -45,18 +45,6 @@ abstract class AbstractMigration implements MigrationInterface {
         
         return $this->sql;
     }
-
-    /**
-     * Выполнить миграцию
-     * @param MetadataInterface $schema
-     */
-    abstract public function up(MetadataInterface $schema);
-    
-    /**
-     * Откатить миграцию
-     * @param MetadataInterface $schema
-     */
-    abstract public function down(MetadataInterface $schema);
 }
 
 ?>

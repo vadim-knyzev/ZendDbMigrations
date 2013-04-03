@@ -1,6 +1,9 @@
 ZendDbMigrations
 ============
 
+## Try new module based on this fork [ZfSimpleMigrations](https://github.com/vgarvardt/ZfSimpleMigrations).
+## Fork is abandoned due to original module author not responding to issues and requests.
+
 Установка
 -------------
 Добавьте в composer.json проекта в секцию require
@@ -18,9 +21,10 @@ php composer.phar update
 Список добавляемых консольных комманд
 
 ``` bash
-db_migrations_version - возвращает номер текущей версии
-db_migrations_migrate [<version>] - выполнить или откатить миграцию, номер версии необязательный параметр
-db_migrations_generate - Сгенерировать каркас класса миграции
+migration version - возвращает номер текущей версии
+migration list [--all] - выводит список доступных миграций
+migration migrate [<version>] [--force] [--down] - выполнить или откатить миграцию, номер версии необязательный параметр
+migration generate - Сгенерировать каркас класса миграции
 ```
 
 Все миграции по умолчанию будут хранится в каталоге
@@ -39,22 +43,26 @@ namespace ZendDbMigrations\Migrations;
 use ZendDbMigrations\Library\AbstractMigration;
 use Zend\Db\Metadata\MetadataInterface;
 
-class Version20121112230913 extends AbstractMigration {
-    
-    public function up(MetadataInterface $schema){
+class Version20121112230913 extends AbstractMigration
+{
+    public static $description = "Migration description";
+
+    public function up(MetadataInterface $schema)
+    {
         //$this->addSql(/*Sql instruction*/);
     }
-    
-    public function down(MetadataInterface $schema){
+
+    public function down(MetadataInterface $schema)
+    {
         //$this->addSql(/*Sql instruction*/);
     }
 }
 ```
 
 выполнить миграцию можно двумя способами
-запустив команду db_migrations_migrate без параметров
-или с указанием версии 
-db_migrations_migrate 20121112230913
-Version20121112230913 - здесь 20121112230913 будет версией миграции
+* запустив команду migration migrate без параметров
+* или с указанием версии
+    * `migration migrate 20121112230913`
+    * `Version20121112230913` - здесь `20121112230913` будет версией миграции
 
 http://vadim-knyzev.blogspot.com/
