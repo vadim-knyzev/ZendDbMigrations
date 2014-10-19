@@ -53,9 +53,9 @@ class Migration {
      * Создать таблицу миграций
      */
     protected function createMigrationTable(){
-        $sql = sprintf('CREATE TABLE IF NOT EXISTS "%s" ("id"  SERIAL NOT NULL, 
-            "version" bigint NOT NULL, 
-            PRIMARY KEY ("id"));', $this->migrationTable);
+        $sql = sprintf('CREATE TABLE IF NOT EXISTS %s (id  SERIAL NOT NULL, 
+            version bigint NOT NULL, 
+            PRIMARY KEY (id));', $this->migrationTable);
         $this->connection->execute($sql);
     }
     
