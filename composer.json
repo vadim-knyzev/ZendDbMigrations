@@ -1,5 +1,5 @@
 {
-    "name": "knyzev/zend-db-migrations",
+    "name": "paunin/zend-db-migrations",
     "description": "Module for managment database migrations.",
     "type": "library",
     "license": "BSD-3-Clause",
@@ -15,6 +15,11 @@
             "name": "Vadim Knyzev",
             "email": "vadim.knyzev@gmail.com",
             "homepage": "http://vadim-knyzev.blogspot.com/"
+        },
+        {
+            "name": "Dmitriy Paunin",
+            "email": "d.m.paunin@gmail.com",
+            "homepage": "http://paunin.com/"
         }
     ],
     "require": {
