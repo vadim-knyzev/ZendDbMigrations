@@ -53,9 +53,23 @@ class Migration {
      * Создать таблицу миграций
      */
     protected function createMigrationTable(){
-        $sql = sprintf('CREATE TABLE IF NOT EXISTS "%s" ("id"  SERIAL NOT NULL, 
-            "version" bigint NOT NULL, 
+        $platformName = get_class($this->adapter->getPlatform());
+        switch ($platformName){
+            case 'Zend\Db\Adapter\Platform\Mysql':
+                $sql = sprintf('CREATE TABLE IF NOT EXISTS `%s` (
+                  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                  `version` bigint(20) NOT NULL,
+                  PRIMARY KEY (`id`))' , $this->migrationTable);
+                break;
+
+            default:
+                // May be postgres
+                $sql = sprintf('CREATE TABLE IF NOT EXISTS "%s" ("id"  SERIAL NOT NULL,
+            "version" bigint NOT NULL,
             PRIMARY KEY ("id"));', $this->migrationTable);
+
+        }
+
         $this->connection->execute($sql);
     }
     
