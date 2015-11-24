@@ -4,7 +4,7 @@ ZendDbMigrations
 Установка
 -------------
 Добавьте в composer.json проекта в секцию require
-"knyzev/zend-db-migrations": "dev-master"
+"eugenzor/zend-db-migrations": "dev-master"
 
 затем выполните
 ``` bash
@@ -56,5 +56,3 @@ class Version20121112230913 extends AbstractMigration {
 или с указанием версии 
 db_migrations_migrate 20121112230913
 Version20121112230913 - здесь 20121112230913 будет версией миграции
-
-http://vadim-knyzev.blogspot.com/
